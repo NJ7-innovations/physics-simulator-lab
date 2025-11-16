@@ -1,311 +1,112 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Physics Simulator Lab — Complete Version</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics Simulator Lab</title>
 <style>
-  *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;padding:0}
-  body{background:#061222;color:#e6eef6;padding:20px;min-height:100vh}
-  .app{max-width:1200px;margin:0 auto}
-  header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:14px}
-  header h1{font-size:20px}
-  .grid{display:grid;grid-template-columns:320px 1fr;gap:18px}
-  .card{background:rgba(6,18,36,0.6);padding:14px;border-radius:12px}
-  .nav button{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;border:0;background:transparent;color:#94a3b8;margin-bottom:8px;cursor:pointer}
-  .nav button.active{background:rgba(255,255,255,0.03);color:#fff}
-  label{font-size:13px;color:#94a3b8}
-  input,select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:6px}
-  .row{display:flex;gap:8px;margin-top:6px}
-  .btn{background:#06b6d4;color:#042028;padding:10px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:600}
-  canvas.sim{background:transparent;border-radius:8px;display:block}
-  .output{background:rgba(2,20,30,0.5);padding:10px;border-radius:8px;margin-top:8px;color:#bfeaf7;font-size:13px}
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header {
+    background-color: #333;
+    color: #fff;
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 1.5em;
+  }
+  main {
+    margin: 20px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 600px;
+  }
+  input, button {
+    margin: 5px 0;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+  }
+  button {
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    border: none;
+  }
+  button:hover {
+    background-color: #555;
+  }
+  .results {
+    margin-top: 15px;
+    background: #eee;
+    padding: 10px;
+    border-radius: 5px;
+  }
 </style>
 </head>
 <body>
-<div class="app" id="appRoot">
-<header>
-<h1>Physics Simulator Lab — Complete</h1>
-<div style="margin-left:auto;display:flex;gap:12px;align-items:center">
-<label>Gravity (m/s²) <input id="gravitySet" type="number" value="9.81" step="0.01" style="width:80px"></label>
-<button class="btn" id="applyG">Apply</button>
-</div>
-</header>
 
-<div class="grid">
-<aside class="card nav">
-<button class="active" data-tab="projectile">Projectile Motion</button>
-<button data-tab="pendulum">Pendulum</button>
-<button data-tab="anglegraph">Angle vs Distance</button>
-<button data-tab="sprint">Sprint Tracker</button>
-</aside>
+<header>Physics Simulator Lab</header>
 
 <main>
-<!-- Projectile -->
-<section class="card" id="projectile">
-<h2>Projectile Motion</h2>
-<div class="two-col">
-<div>
-<label>Angle (deg)</label>
-<input id="proj-angle" type="number" value="35">
-<label>Velocity (m/s)</label>
-<input id="proj-vel" type="number" value="15">
-<label>Friction (0–0.9)</label>
-<input id="proj-fric" type="number" value="0" step="0.01" min="0" max="0.9">
-<label>Air drag (0–1)</label>
-<input id="proj-drag" type="number" value="0" step="0.01" min="0" max="1">
-<div class="row">
-<button class="btn" id="proj-run">Calc</button>
-<button class="btn" id="proj-animate">Animate</button>
-<button class="btn" id="proj-export">Export CSV</button>
-</div>
-<div class="output" id="proj-output">Results here</div>
-</div>
-<div>
-<canvas id="proj-anim" class="sim" width="700" height="300"></canvas>
-</div>
-</div>
-</section>
-
-<!-- Pendulum -->
-<section class="card" id="pendulum" style="display:none">
-<h2>Pendulum</h2>
-<div class="two-col">
-<div>
-<label>Length (m)</label>
-<input id="pend-length" type="number" value="1">
-<label>Initial angle (deg)</label>
-<input id="pend-angle-init" type="number" value="20">
-<label>Damping (0–0.5)</label>
-<input id="pend-damp" type="number" value="0.01" step="0.01">
-<div class="row">
-<button class="btn" id="pend-run">Calc</button>
-<button class="btn" id="pend-animate">Animate</button>
-<button class="btn" id="pend-export">Export CSV</button>
-</div>
-<div class="output" id="pend-output">Results here</div>
-</div>
-<div>
-<canvas id="pend-anim" class="sim" width="700" height="300"></canvas>
-</div>
-</div>
-</section>
-
-<!-- Angle Graph -->
-<section class="card" id="anglegraph" style="display:none">
-<h2>Angle vs Distance</h2>
-<label>Velocity (m/s)</label>
-<input id="ang-vel" type="number" value="15">
-<div class="row">
-<button class="btn" id="ang-run">Show Graph</button>
-<button class="btn" id="ang-export">Export CSV</button>
-</div>
-<canvas id="ang-chart" width="700" height="300"></canvas>
-</section>
-
-<!-- Sprint Tracker -->
-<section class="card" id="sprint" style="display:none">
-<h2>Sprint Tracker</h2>
-<label>Distance (m)</label>
-<input id="sprintDistance" type="number" value="25">
-<label>Time (s)</label>
-<input id="sprintTime" type="number" placeholder="Enter your time">
-<div class="row">
-<button class="btn" id="sprint-calc">Calc Speed</button>
-<button class="btn" id="sprint-animate">Animate Run</button>
-<button class="btn" id="sprint-export">Export CSV</button>
-</div>
-<div class="output" id="sprint-output">Results here</div>
-<canvas id="sprint-anim" class="sim" width="700" height="100"></canvas>
-</section>
+  <h2>Projectile Motion Calculator</h2>
+  <label>Initial Velocity (m/s):</label>
+  <input type="number" id="velocity" placeholder="Enter velocity">
+  
+  <label>Launch Angle (degrees):</label>
+  <input type="number" id="angle" placeholder="Enter angle">
+  
+  <label>Gravity (m/s²):</label>
+  <input type="number" id="gravity" value="9.81">
+  
+  <button onclick="calculateProjectile()">Calculate</button>
+  
+  <div class="results" id="results"></div>
 </main>
-</div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-let GRAVITY = 9.81;
+function calculateProjectile() {
+  const v = parseFloat(document.getElementById('velocity').value);
+  const angleDeg = parseFloat(document.getElementById('angle').value);
+  const g = parseFloat(document.getElementById('gravity').value);
 
-// --- Tab Navigation ---
-document.querySelectorAll('.nav button').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    const tab=btn.dataset.tab;
-    document.querySelectorAll('main section.card').forEach(s=>s.style.display='none');
-    document.getElementById(tab).style.display='block';
-  });
-});
-
-// --- Utilities ---
-function download(filename,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=filename;a.click();}
-function downloadCSV(filename,rows){const csv=rows.map(r=>r.join(',')).join('\n');download(filename,csv);}
-
-// --- Apply Gravity ---
-document.getElementById('applyG').addEventListener('click',()=>{
-  const val=parseFloat(document.getElementById('gravitySet').value);
-  if(!isNaN(val)&&val>0){GRAVITY=val;alert('Gravity set to '+val+' m/s²');}
-});
-
-// --- Projectile ---
-function projectile_motion(angle,vel,g){const a=angle*Math.PI/180;const t=(2*vel*Math.sin(a))/g;const h=(vel**2*Math.sin(a)**2)/(2*g);const r=(vel**2*Math.sin(2*a))/g;return {time:t,height:h,range:r};}
-function projectile_with_friction(angle,vel,fric,g){return projectile_motion(angle,vel*(1-fric),g);}
-function projectile_with_drag(angle,vel,drag,g){return projectile_motion(angle,vel/(1+drag),g);}
-const pCanvas=document.getElementById('proj-anim');const pCtx=pCanvas.getContext('2d');let pReq=null;
-
-function animateProjectile(angle,vel,fric,drag){
-  cancelAnimationFrame(pReq);
-  const res=projectile_motion(angle,vel,GRAVITY);
-  const totalT=res.time;
-  const scaleX=(pCanvas.width-40)/res.range;
-  const scaleY=(pCanvas.height-60)/(res.height*1.2+0.1);
-  let t=0;const dt=0.016;
-  function frame(){t+=dt;
-    const vx=vel*Math.cos(angle*Math.PI/180);
-    const vy0=vel*Math.sin(angle*Math.PI/180);
-    const x=vx*t;const y=vy0*t-0.5*GRAVITY*t*t;
-    const cx=20+x*scaleX;const cy=pCanvas.height-20-y*scaleY;
-    pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-    // trail
-    pCtx.fillStyle='rgba(6,182,212,0.2)';
-    pCtx.beginPath();pCtx.arc(cx,cy,6,0,2*Math.PI);pCtx.fill();
-    // projectile
-    pCtx.fillStyle='rgba(6,182,212,0.9)';
-    pCtx.beginPath();pCtx.arc(cx,cy,6,0,2*Math.PI);pCtx.fill();
-    // HUD
-    pCtx.fillStyle='#fff';pCtx.font='12px Inter';
-    pCtx.fillText(`t: ${t.toFixed(2)} s`,10,18);pCtx.fillText(`x: ${x.toFixed(2)} m`,10,34);pCtx.fillText(`y: ${y.toFixed(2)} m`,10,50);
-    if(y<0){cancelAnimationFrame(pReq);return;}
-    pReq=requestAnimationFrame(frame);
+  if (isNaN(v) || isNaN(angleDeg) || isNaN(g)) {
+    alert('Please enter all values correctly.');
+    return;
   }
-  pReq=requestAnimationFrame(frame);
+
+  const angleRad = angleDeg * Math.PI / 180;
+
+  // Max height
+  const maxHeight = (v * Math.sin(angleRad))**2 / (2 * g);
+
+  // Flight time
+  const flightTime = (2 * v * Math.sin(angleRad)) / g;
+
+  // Range
+  const range = (v**2 * Math.sin(2 * angleRad)) / g;
+
+  document.getElementById('results').innerHTML = `
+    <strong>Results:</strong><br>
+    Max Height: ${maxHeight.toFixed(2)} m<br>
+    Flight Time: ${flightTime.toFixed(2)} s<br>
+    Range: ${range.toFixed(2)} m
+  `;
 }
-
-document.getElementById('proj-run').addEventListener('click',()=>{
-  const angle=parseFloat(document.getElementById('proj-angle').value);
-  const vel=parseFloat(document.getElementById('proj-vel').value);
-  const fric=parseFloat(document.getElementById('proj-fric').value)||0;
-  const drag=parseFloat(document.getElementById('proj-drag').value)||0;
-  let res=projectile_motion(angle,vel,GRAVITY);
-  if(fric>0) res=projectile_with_friction(angle,vel,fric,GRAVITY);
-  if(drag>0) res=projectile_with_drag(angle,vel,drag,GRAVITY);
-  document.getElementById('proj-output').innerText=`Flight time: ${res.time.toFixed(3)} s\nMax height: ${res.height.toFixed(3)} m\nRange: ${res.range.toFixed(3)} m`;
-});
-
-document.getElementById('proj-animate').addEventListener('click',()=>{
-  const angle=parseFloat(document.getElementById('proj-angle').value);
-  const vel=parseFloat(document.getElementById('proj-vel').value);
-  const fric=parseFloat(document.getElementById('proj-fric').value)||0;
-  const drag=parseFloat(document.getElementById('proj-drag').value)||0;
-  animateProjectile(angle,vel,fric,drag);
-});
-
-document.getElementById('proj-export').addEventListener('click',()=>{
-  const angle=parseFloat(document.getElementById('proj-angle').value);
-  const vel=parseFloat(document.getElementById('proj-vel').value);
-  const fric=parseFloat(document.getElementById('proj-fric').value)||0;
-  const drag=parseFloat(document.getElementById('proj-drag').value)||0;
-  let res=projectile_motion(angle,vel,GRAVITY);
-  if(fric>0) res=projectile_with_friction(angle,vel,fric,GRAVITY);
-  if(drag>0) res=projectile_with_drag(angle,vel,drag,GRAVITY);
-  downloadCSV('projectile.csv',[['Angle','Vel','Fric','Drag','Time','Height','Range'],[angle,vel,fric,drag,res.time.toFixed(3),res.height.toFixed(3),res.range.toFixed(3)]]);
-});
-
-// --- Pendulum ---
-const pendCanvas=document.getElementById('pend-anim');const pendCtx=pendCanvas.getContext('2d');let pendReq=null;
-function pendulum_period(L){return 2*Math.PI*Math.sqrt(L/GRAVITY);}
-function animatePendulum(L,theta0,damp){
-  cancelAnimationFrame(pendReq);
-  let theta=theta0*Math.PI/180;let omega=0;const dt=0.016;
-  function frame(){
-    const alpha=-(GRAVITY/L)*Math.sin(theta)-damp*omega;
-    omega+=alpha*dt;theta+=omega*dt;
-    pendCtx.clearRect(0,0,pendCanvas.width,pendCanvas.height);
-    const ox=80;const oy=60;const scale=Math.min(260,pendCanvas.height-80);
-    const px=ox+Math.sin(theta)*L*scale;const py=oy+Math.cos(theta)*L*scale;
-    // rope
-    pendCtx.strokeStyle='rgba(6,182,212,0.9)';pendCtx.lineWidth=2;pendCtx.beginPath();pendCtx.moveTo(ox,oy);pendCtx.lineTo(px,py);pendCtx.stroke();
-    // bob
-    pendCtx.fillStyle='rgba(6,182,212,0.95)';pendCtx.beginPath();pendCtx.arc(px,py,14,0,2*Math.PI);pendCtx.fill();
-    pendReq=requestAnimationFrame(frame);
-  }
-  pendReq=requestAnimationFrame(frame);
-}
-
-document.getElementById('pend-run').addEventListener('click',()=>{
-  const L=parseFloat(document.getElementById('pend-length').value);
-  document.getElementById('pend-output').innerText=`Period: ${pendulum_period(L).toFixed(4)} s`;
-});
-document.getElementById('pend-animate').addEventListener('click',()=>{
-  const L=parseFloat(document.getElementById('pend-length').value);
-  const angle=parseFloat(document.getElementById('pend-angle-init').value);
-  const damp=parseFloat(document.getElementById('pend-damp').value)||0;
-  animatePendulum(L,angle,damp);
-});
-document.getElementById('pend-export').addEventListener('click',()=>{
-  const L=parseFloat(document.getElementById('pend-length').value);
-  const T=pendulum_period(L);
-  downloadCSV('pendulum.csv',[['Length','Gravity','Period'],[L,GRAVITY,T.toFixed(4)]]);
-});
-
-// --- Angle Graph ---
-let angChart=null;
-document.getElementById('ang-run').addEventListener('click',()=>{
-  const vel=parseFloat(document.getElementById('ang-vel').value);
-  const angles=[];const ranges=[];
-  for(let a=5;a<90;a+=5){angles.push(a);ranges.push(projectile_motion(a,vel,GRAVITY).range.toFixed(2));}
-  const ctx=document.getElementById('ang-chart').getContext('2d');
-  if(angChart) angChart.destroy();
-  angChart=new Chart(ctx,{type:'line',data:{labels:angles,datasets:[{label:'Range (m)',data:ranges,fill:false,tension:0.3}]},options:{scales:{x:{title:{display:true,text:'Angle (deg)'}},y:{title:{display:true,text:'Distance (m)'}}}}});
-});
-document.getElementById('ang-export').addEventListener('click',()=>{
-  const vel=parseFloat(document.getElementById('ang-vel').value);
-  const rows=[['Angle','Range']];
-  for(let a=5;a<90;a+=5){rows.push([a,projectile_motion(a,vel,GRAVITY).range.toFixed(4)]);}
-  downloadCSV('angle_distance.csv',rows);
-});
-
-// --- Sprint ---
-const sprintCanvas=document.getElementById('sprint-anim');const sprintCtx=sprintCanvas.getContext('2d');
-function animateSprint(distance,timeSec){
-  const pixels=sprintCanvas.width-40;
-  const speed=distance/timeSec;
-  const mPerPixel=distance/pixels;
-  let x=20;const start=performance.now();
-  function frame(now){
-    const elapsed=(now-start)/1000;
-    const traveled=Math.min(distance,elapsed*speed);
-    x=20+traveled/mPerPixel;
-    sprintCtx.clearRect(0,0,sprintCanvas.width,sprintCanvas.height);
-    sprintCtx.fillStyle='rgba(255,255,255,0.06)';
-    sprintCtx.fillRect(0,sprintCanvas.height-30,sprintCanvas.width,30);
-    sprintCtx.fillStyle='rgba(6,182,212,0.95)';
-    sprintCtx.beginPath();sprintCtx.arc(x,sprintCanvas.height/2,10,0,2*Math.PI);sprintCtx.fill();
-    sprintCtx.fillStyle='#fff';sprintCtx.font='12px Inter';sprintCtx.fillText(`${traveled.toFixed(2)} m`,x+12,sprintCanvas.height/2+4);
-    if(traveled<distance) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-
-document.getElementById('sprint-calc').addEventListener('click',()=>{
-  const d=parseFloat(document.getElementById('sprintDistance').value);
-  const t=parseFloat(document.getElementById('sprintTime').value);
-  if(isNaN(d)||isNaN(t)||t<=0){document.getElementById('sprint-output').innerText='Invalid input';return;}
-  document.getElementById('sprint-output').innerText=`Speed: ${(d/t).toFixed(2)} m/s`;
-});
-document.getElementById('sprint-animate').addEventListener('click',()=>{
-  const d=parseFloat(document.getElementById('sprintDistance').value);
-  const t=parseFloat(document.getElementById('sprintTime').value);
-  if(isNaN(d)||isNaN(t)||t<=0){document.getElementById('sprint-output').innerText='Invalid input';return;}
-  animateSprint(d,t);
-});
-document.getElementById('sprint-export').addEventListener('click',()=>{
-  const d=parseFloat(document.getElementById('sprintDistance').value);
-  const t=parseFloat(document.getElementById('sprintTime').value);
-  downloadCSV('sprint.csv',[['Distance','Time','Speed'],[d,t,(d/t).toFixed(3)]]);
-});
 </script>
+
 </body>
 </html>
