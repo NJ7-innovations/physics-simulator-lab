@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nathan's Physics Lab</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
+  header { text-align: center; padding: 1em; background: #222; color: white; }
+  .tabs { display: flex; justify-content: center; margin: 1em 0; }
+  .tab { padding: 10px 20px; cursor: pointer; background: #555; color: white; margin: 0 5px; border-radius: 5px; }
+  .tab.active { background: #ff5722; }
+  .lab { display: none; text-align: center; }
+  .lab.active { display: block; }
+  canvas { background: white; border: 1px solid #ccc; margin: 10px auto; display: block; }
+  input { margin: 5px; }
+  button { margin: 5px; padding: 5px 10px; }
+  .results { margin-top: 10px; }
+</style>
+</head>
+<body>
+<header><h1>Nathan's Physics Lab</h1></header>
+<div class="tabs">
+  <div class="tab active" onclick="switchLab('projectile')">Projectile</div>
+  <div class="tab" onclick="switchLab('pendulum')">Pendulum</div>
+  <div class="tab" onclick="switchLab('sprint')">Sprint Track</div>
+  <div class="tab" onclick="switchLab('energy')">Energy</div>
+</div>
+
+<div id="projectile" class="lab active">
+  <h2>Projectile Motion</h2>
+  Velocity (m/s): <input type="number" id="projVel" value="20"><br>
+  Angle (deg): <input type="number" id="projAngle" value="45"><br>
+  Gravity (m/s²): <input type="number" id="projGravity" value="9.81"><br>
+  <button onclick="startProjectile()">Launch</button>
+  <button onclick="resetProjectile()">Reset</button>
+  <canvas id="projCanvas" width="600" height="400"></canvas>
+  <div class="results" id="projResults"></div>
+</div>
+
+<div id="pendulum" class="lab">
+  <h2>Pendulum</h2>
+  Length (m): <input type="number" id="pendLength" value="2"><br>
+  Mass (kg): <input type="number" id="pendMass" value="1"><br>
+  Gravity (m/s²): <input type="number" id="pendGravity" value="9.81"><br>
+  <button onclick="startPendulum()">Start</button>
+  <button onclick="resetPendulum()">Reset</button>
+  <canvas id="pendCanvas" width="600" height="400"></canvas>
+  <div class="results" id="pendResults"></div>
+</div>
+
+<div id="sprint" class="lab">
+  <h2>Sprint Track</h2>
+  Speed (m/s): <input type="number" id="sprintSpeed" value="5"><br>
+  Distance (m): <input type="number" id="sprintDistance" value="50"><br>
+  <button onclick="startSprint()">Start</button>
+  <button onclick="resetSprint()">Reset</button>
+  <canvas id="sprintCanvas" width="600" height="100"></canvas>
+  <div class="results" id="sprintResults"></div>
+</div>
+
+<div id="energy" class="lab">
+  <h2>Energy Lab (Projectile)</h2>
+  Mass (kg): <input type="number" id="energyMass" value="1"><br>
+  Velocity (m/s): <input type="number" id="energyVel" value="20"><br>
+  Height (m): <input type="number" id="energyHeight" value="0"><br>
+  <button onclick="calcEnergy()">Calculate</button>
+  <div class="results" id="energyResults"></div>
+</div>
+
+<script>
+// Tab switch
+function switchLab(labId){
+  document.querySelectorAll('.lab').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(labId).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// Projectile Motion
+let projInterval;
+function startProjectile(){
+  clearInterval(projInterval);
+  let canvas = document.getElementById('projCanvas');
+  let ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let v = parseFloat(document.getElementById('projVel').value);
+  let angle = parseFloat(document.getElementById('projAngle').value)*Math.PI/180;
+  let g = parseFloat(document.getElementById('projGravity').value);
+  let t=0, dt=0.02;
+  let x0=50, y0=canvas.height-50;
+  let projX=x0, projY=y0;
+  let points = [];
+  projInterval = setInterval(()=>{
+    projX = x0 + v*Math.cos(angle)*t*20;
+    projY = y0 - (v*Math.sin(angle)*t - 0.5*g*t*t)*20;
+    if(projY>canvas.height){
+      clearInterval(projInterval);
+      let flightTime = (2*v*Math.sin(angle)/g).toFixed(3);
+      let maxHeight = (Math.pow(v*Math.sin(angle),2)/(2*g)).toFixed(3);
+      let range = (v*v*Math.sin(2*angle)/g).toFixed(3);
+      document.getElementById('projResults').innerHTML = `Flight time: ${flightTime} s<br>Max height: ${maxHeight} m<br>Range: ${range} m`;
+      return;
+    }
+    points.push([projX,projY]);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    for(let p of points) ctx.lineTo(p[0],p[1]);
+    ctx.strokeStyle='blue';
+    ctx.stroke();
+    t+=dt;
+  },20);
+}
+function resetProjectile(){
+  clearInterval(projInterval);
+  let canvas = document.getElementById('projCanvas');
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('projResults').innerHTML='';
+}
+
+// Pendulum
+let pendInterval;
+function startPendulum(){
+  clearInterval(pendInterval);
+  let canvas = document.getElementById('pendCanvas');
+  let ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let L = parseFloat(document.getElementById('pendLength').value);
+  let g = parseFloat(document.getElementById('pendGravity').value);
+  let theta = Math.PI/6; // initial angle 30 deg
+  let omega=0; let dt=0.02;
+  let originX=canvas.width/2, originY=50;
+  pendInterval = setInterval(()=>{
+    let alpha = -(g/L)*Math.sin(theta);
+    omega+=alpha*dt;
+    theta+=omega*dt;
+    let x = originX + L*100*Math.sin(theta);
+    let y = originY + L*100*Math.cos(theta);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.beginPath();
+    ctx.moveTo(originX,originY);
+    ctx.lineTo(x,y);
+    ctx.strokeStyle='black'; ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x,y,10,0,2*Math.PI);
+    ctx.fillStyle='red'; ctx.fill();
+    let period = (2*Math.PI*Math.sqrt(L/g)).toFixed(3);
+    document.getElementById('pendResults').innerHTML = `Theoretical period: ${period} s`;
+  },20);
+}
+function resetPendulum(){
+  clearInterval(pendInterval);
+  let canvas = document.getElementById('pendCanvas');
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('pendResults').innerHTML='';
+}
+
+// Sprint Track
+let sprintInterval;
+function startSprint(){
+  clearInterval(sprintInterval);
+  let canvas = document.getElementById('sprintCanvas');
+  let ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let v = parseFloat(document.getElementById('sprintSpeed').value);
+  let distance = parseFloat(document.getElementById('sprintDistance').value);
+  let pos=0; let dt=0.02;
+  sprintInterval=setInterval(()=>{
+    pos+=v*dt*20;
+    if(pos>distance*20){ clearInterval(sprintInterval); return; }
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='green';
+    ctx.fillRect(pos,30,20,20);
+    document.getElementById('sprintResults').innerHTML = `Distance covered: ${(pos/20).toFixed(2)} m`;
+  },20);
+}
+function resetSprint(){
+  clearInterval(sprintInterval);
+  let canvas = document.getElementById('sprintCanvas');
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('sprintResults').innerHTML='';
+}
+
+// Energy Lab
+function calcEnergy(){
+  let m = parseFloat(document.getElementById('energyMass').value);
+  let v = parseFloat(document.getElementById('energyVel').value);
+  let h = parseFloat(document.getElementById('energyHeight').value);
+  let g = 9.81;
+  let KE = 0.5*m*v*v;
+  let PE = m*g*h;
+  document.getElementById('energyResults').innerHTML = `Kinetic Energy: ${KE.toFixed(2)} J<br>Potential Energy: ${PE.toFixed(2)} J<br>Total Energy: ${(KE+PE).toFixed(2)} J`;
+}
+</script>
+</body>
+</html>
