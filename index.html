@@ -1,60 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Physics Simulator Lab</title>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-h1 {
-    margin-top: 20px;
-}
-.container {
-    margin: 20px auto;
-    width: 90%;
-    max-width: 1000px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-}
-label {
-    display: inline-block;
-    width: 150px;
-    text-align: right;
-    margin-right: 10px;
-}
-input, select {
-    margin-bottom: 10px;
-    padding: 5px;
-    width: 150px;
-}
-button {
-    padding: 10px 20px;
-    margin: 10px;
-}
-canvas {
-    background: #222;
-    display: block;
-    margin: 20px auto;
-    border: 1px solid #000;
-}
-.results {
-    margin-top: 20px;
-    font-weight: bold;
-}
-</style>
-<head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web-Based Physics Simulator</title>
-
-  <!-- Google tag (gtag.js) -->
+  
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2K19VHLTKS"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -62,244 +13,112 @@ canvas {
     gtag('js', new Date());
     gtag('config', 'G-2K19VHLTKS');
   </script>
+  
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
+    h1 { text-align: center; }
+    .section { margin-bottom: 40px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    input, button { margin: 5px 0; padding: 5px; font-size: 16px; }
+    canvas { border: 1px solid #000; display: block; margin: 10px auto; background: #e8e8e8; }
+    .results { margin-top: 10px; font-weight: bold; }
+  </style>
 </head>
+<body>
+  <h1>Web-Based Physics Simulator</h1>
 
+  <!-- Projectile Motion Section -->
+  <div class="section">
+    <h2>Projectile Motion</h2>
+    <label>Initial Velocity (m/s): <input type="number" id="projVelocity" value="20"></label><br>
+    <label>Angle (degrees): <input type="number" id="projAngle" value="45"></label><br>
+    <label>Gravity (m/s²): <input type="number" id="projGravity" value="9.8"></label><br>
+    <button onclick="calculateProjectile()">Calculate</button>
+    <div class="results" id="projResults"></div>
+    <canvas id="projCanvas" width="500" height="300"></canvas>
+  </div>
 
-<h1>Physics Simulator Lab</h1>
-<div class="container">
-    <label for="simulation">Choose Simulation:</label>
-    <select id="simulation">
-        <option value="projectile">Projectile Motion</option>
-        <option value="pendulum">Pendulum</option>
-        <option value="sprint">Sprint Track</option>
-        <option value="energy">Energy</option>
-    </select>
-    <div id="inputs"></div>
-    <button onclick="runSimulation()">Run Simulation</button>
-    <canvas id="simCanvas" width="800" height="400"></canvas>
-    <div class="results" id="results"></div>
-</div>
+  <!-- Pendulum Section -->
+  <div class="section">
+    <h2>Pendulum Simulation</h2>
+    <label>Length (m): <input type="number" id="pendLength" value="2"></label><br>
+    <label>Gravity (m/s²): <input type="number" id="pendGravity" value="9.8"></label><br>
+    <button onclick="calculatePendulum()">Calculate Period</button>
+    <div class="results" id="pendResults"></div>
+  </div>
 
-<script>
-const canvas = document.getElementById("simCanvas");
-const ctx = canvas.getContext("2d");
-const inputsDiv = document.getElementById("inputs");
-const resultsDiv = document.getElementById("results");
+  <!-- Sprint Track Section -->
+  <div class="section">
+    <h2>Sprint Track</h2>
+    <label>Distance (m): <input type="number" id="sprintDistance" value="100"></label><br>
+    <label>Time (s): <input type="number" id="sprintTime" value="12"></label><br>
+    <button onclick="calculateSprint()">Calculate Speed</button>
+    <div class="results" id="sprintResults"></div>
+  </div>
 
-const defaultGravity = 9.81;
+  <!-- Energy Section -->
+  <div class="section">
+    <h2>Energy Calculator</h2>
+    <label>Mass (kg): <input type="number" id="mass" value="5"></label><br>
+    <label>Velocity (m/s): <input type="number" id="velocity" value="10"></label><br>
+    <button onclick="calculateEnergy()">Calculate Kinetic Energy</button>
+    <div class="results" id="energyResults"></div>
+  </div>
 
-const inputConfigs = {
-    projectile: [
-        {label: "Velocity (m/s)", id: "velocity", type: "number", value: 20},
-        {label: "Angle (deg)", id: "angle", type: "number", value: 45},
-        {label: "Gravity (m/s²)", id: "gravity", type: "number", value: defaultGravity}
-    ],
-    pendulum: [
-        {label: "Length (m)", id: "length", type: "number", value: 2},
-        {label: "Initial Angle (deg)", id: "angle", type: "number", value: 30},
-        {label: "Gravity (m/s²)", id: "gravity", type: "number", value: defaultGravity}
-    ],
-    sprint: [
-        {label: "Distance (m)", id: "distance", type: "number", value: 100},
-        {label: "Time (s)", id: "time", type: "number", value: 12}
-    ],
-    energy: [
-        {label: "Mass (kg)", id: "mass", type: "number", value: 10},
-        {label: "Height (m)", id: "height", type: "number", value: 5},
-        {label: "Velocity (m/s)", id: "velocity", type: "number", value: 10},
-        {label: "Gravity (m/s²)", id: "gravity", type: "number", value: defaultGravity}
-    ]
-};
+  <script>
+    // Projectile Motion
+    function calculateProjectile() {
+      const v = parseFloat(document.getElementById("projVelocity").value);
+      const angle = parseFloat(document.getElementById("projAngle").value) * Math.PI/180;
+      const g = parseFloat(document.getElementById("projGravity").value);
 
-function createInputs(sim) {
-    inputsDiv.innerHTML = "";
-    inputConfigs[sim].forEach(cfg => {
-        const label = document.createElement("label");
-        label.for = cfg.id;
-        label.innerText = cfg.label;
-        const input = document.createElement("input");
-        input.type = cfg.type;
-        input.id = cfg.id;
-        input.value = cfg.value;
-        inputsDiv.appendChild(label);
-        inputsDiv.appendChild(input);
-        inputsDiv.appendChild(document.createElement("br"));
-    });
-}
+      const time = (2 * v * Math.sin(angle)) / g;
+      const maxHeight = Math.pow(v * Math.sin(angle), 2) / (2 * g);
+      const range = (Math.pow(v,2) * Math.sin(2*angle)) / g;
 
-document.getElementById("simulation").addEventListener("change", (e) => {
-    createInputs(e.target.value);
-    clearCanvas();
-    resultsDiv.innerHTML = "";
-});
+      document.getElementById("projResults").innerHTML =
+        `Flight time: ${time.toFixed(3)} s<br>
+         Max height: ${maxHeight.toFixed(3)} m<br>
+         Range: ${range.toFixed(3)} m`;
 
-// Initialize inputs
-createInputs(document.getElementById("simulation").value);
-
-function clearCanvas() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-}
-
-function runSimulation() {
-    clearCanvas();
-    resultsDiv.innerHTML = "";
-    const sim = document.getElementById("simulation").value;
-
-    if(sim === "projectile") {
-        let v = parseFloat(document.getElementById("velocity").value);
-        let angleDeg = parseFloat(document.getElementById("angle").value);
-        let g = parseFloat(document.getElementById("gravity").value);
-
-        let angle = angleDeg * Math.PI/180;
-        let t_flight = (2*v*Math.sin(angle))/g;
-        let maxHeight = (v*v*Math.sin(angle)*Math.sin(angle))/(2*g);
-        let range = (v*v*Math.sin(2*angle))/g;
-
-        resultsDiv.innerHTML = `Flight time: ${t_flight.toFixed(3)} s<br>
-                                Max height: ${maxHeight.toFixed(3)} m<br>
-                                Range: ${range.toFixed(3)} m`;
-
-        animateProjectile(v, angle, g);
+      const canvas = document.getElementById("projCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.beginPath();
+      for(let t=0; t<=time; t+=0.01){
+        const x = (v*Math.cos(angle)*t) * (canvas.width/range);
+        const y = canvas.height - ( (v*Math.sin(angle)*t - 0.5*g*t*t) * (canvas.height/(maxHeight*1.2)) );
+        if(t===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
     }
-    else if(sim === "pendulum") {
-        let length = parseFloat(document.getElementById("length").value);
-        let angleDeg = parseFloat(document.getElementById("angle").value);
-        let g = parseFloat(document.getElementById("gravity").value);
-        let angle = angleDeg * Math.PI/180;
 
-        let period = 2*Math.PI*Math.sqrt(length/g);
-
-        resultsDiv.innerHTML = `Theoretical period: ${period.toFixed(3)} s`;
-
-        animatePendulum(length, angle, g);
+    // Pendulum
+    function calculatePendulum() {
+      const L = parseFloat(document.getElementById("pendLength").value);
+      const g = parseFloat(document.getElementById("pendGravity").value);
+      const period = 2 * Math.PI * Math.sqrt(L/g);
+      document.getElementById("pendResults").innerHTML =
+        `Theoretical period: ${period.toFixed(3)} s`;
     }
-    else if(sim === "sprint") {
-        let distance = parseFloat(document.getElementById("distance").value);
-        let time = parseFloat(document.getElementById("time").value);
-        let speed = distance/time;
 
-        resultsDiv.innerHTML = `Average speed: ${speed.toFixed(3)} m/s`;
-
-        animateSprint(distance, time);
+    // Sprint Track
+    function calculateSprint() {
+      const d = parseFloat(document.getElementById("sprintDistance").value);
+      const t = parseFloat(document.getElementById("sprintTime").value);
+      const speed = d / t;
+      document.getElementById("sprintResults").innerHTML =
+        `Average speed: ${speed.toFixed(3)} m/s`;
     }
-    else if(sim === "energy") {
-        let mass = parseFloat(document.getElementById("mass").value);
-        let height = parseFloat(document.getElementById("height").value);
-        let velocity = parseFloat(document.getElementById("velocity").value);
-        let g = parseFloat(document.getElementById("gravity").value);
 
-        let PE = mass*g*height;
-        let KE = 0.5*mass*velocity*velocity;
-        let totalE = PE+KE;
-
-        resultsDiv.innerHTML = `Potential Energy: ${PE.toFixed(2)} J<br>
-                                Kinetic Energy: ${KE.toFixed(2)} J<br>
-                                Total Energy: ${totalE.toFixed(2)} J`;
-
-        animateEnergy(height);
+    // Kinetic Energy
+    function calculateEnergy() {
+      const m = parseFloat(document.getElementById("mass").value);
+      const v = parseFloat(document.getElementById("velocity").value);
+      const ke = 0.5 * m * v * v;
+      document.getElementById("energyResults").innerHTML =
+        `Kinetic energy: ${ke.toFixed(3)} J`;
     }
-}
-
-// --- Animations ---
-function animateProjectile(v, angle, g) {
-    let x = 0, y = canvas.height - 20;
-    let t = 0, dt = 0.02;
-    let scale = 5;
-
-    function step() {
-        clearCanvas();
-        x = v*Math.cos(angle)*t;
-        y = canvas.height - 20 - (v*Math.sin(angle)*t - 0.5*g*t*t)*scale;
-        if(y > canvas.height - 20) y = canvas.height - 20;
-
-        ctx.beginPath();
-        ctx.arc(x*scale + 50, y, 10, 0, 2*Math.PI);
-        ctx.fillStyle = "red";
-        ctx.fill();
-
-        if(y < canvas.height - 20) {
-            t += dt;
-            requestAnimationFrame(step);
-        }
-    }
-    step();
-}
-
-function animatePendulum(length, angle, g) {
-    let originX = canvas.width/2;
-    let originY = 50;
-    let t = 0;
-    let dt = 0.02;
-    let amplitude = angle;
-    let l = length*100; // scale
-
-    function step() {
-        clearCanvas();
-        let theta = amplitude*Math.cos(Math.sqrt(g/length)*t);
-        let x = originX + l*Math.sin(theta);
-        let y = originY + l*Math.cos(theta);
-
-        ctx.beginPath();
-        ctx.moveTo(originX, originY);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = "blue";
-        ctx.lineWidth = 4;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, 2*Math.PI);
-        ctx.fillStyle = "blue";
-        ctx.fill();
-
-        t += dt;
-        requestAnimationFrame(step);
-    }
-    step();
-}
-
-function animateSprint(distance, time) {
-    let x = 50;
-    let y = canvas.height/2;
-    let t = 0, dt = 0.02;
-    let speed = distance/time;
-    let scale = 5;
-
-    function step() {
-        clearCanvas();
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, 2*Math.PI);
-        ctx.fillStyle = "green";
-        ctx.fill();
-
-        x += speed*dt*scale;
-        if(x < distance*scale + 50) {
-            requestAnimationFrame(step);
-        }
-    }
-    step();
-}
-
-function animateEnergy(height) {
-    let x = canvas.width/2;
-    let y = 50;
-    let radius = 20;
-    let maxY = canvas.height - 50;
-    let dy = 2;
-
-    function step() {
-        clearCanvas();
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2*Math.PI);
-        ctx.fillStyle = "purple";
-        ctx.fill();
-
-        y += dy;
-        if(y < maxY) {
-            requestAnimationFrame(step);
-        }
-    }
-    step();
-}
-</script>
+  </script>
 </body>
 </html>
